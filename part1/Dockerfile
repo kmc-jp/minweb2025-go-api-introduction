@@ -5,14 +5,9 @@ FROM golang:1.20 AS builder
 WORKDIR /app
 
 # Copy the Go module files and download dependencies
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy the source code
-COPY . .
-
+COPY hello.go .
 # Build the application
-RUN go build -o hello .
+RUN go run hello.go
 
 # Use a minimal image to run the application
 FROM gcr.io/distroless/base-debian10
