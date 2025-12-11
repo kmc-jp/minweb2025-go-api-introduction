@@ -1,0 +1,12 @@
+# ローカルで実行
+```shell
+go run hello.go
+```
+ブラウザで http://localhost/:8080 にアクセスするとHello, World!と表示される。
+
+# コンテナで実行
+```shell
+docker build -t hello-app .
+docker run -p 8080:8080 hello-app
+```
+ブラウザで http://localhost/:8080 にアクセスするとHello, World!と表示される。
