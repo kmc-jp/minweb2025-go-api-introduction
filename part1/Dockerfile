@@ -4,19 +4,11 @@ FROM golang:1.20 AS builder
 # Set the working directory
 WORKDIR /app
 
-# Copy the Go module files and download dependencies
+# Copy the Go module files and source code
 COPY hello.go .
+
 # Build the application
-RUN go run hello.go
-
-# Use a minimal image to run the application
-FROM gcr.io/distroless/base-debian10
-
-# Set the working directory
-WORKDIR /
-
-# Copy the built binary
-COPY --from=builder /app/hello .
+RUN go build -o hello hello.go
 
 # Expose the port the app runs on
 EXPOSE 8080
