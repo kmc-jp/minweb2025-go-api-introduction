@@ -4,6 +4,7 @@
 #set heading(numbering: none)
 
 #import "@preview/slydst:0.1.5" : *
+#import "@preview/fletcher:0.5.8" : *
 
 #show: slides.with(
   title: "Web API講座",
@@ -20,10 +21,20 @@
 - クライアント（リクエスト）とサーバー（レスポンス）の間でデータのやり取りを行う
 
 == HTTPリクエストとレスポンス
-- **リクエスト**: クライアントからサーバーへの要求
+- リクエスト: クライアントからサーバーへの要求
   - メソッド、URI、ヘッダー、ボディで構成される
-- **レスポンス**: サーバーからクライアントへの応答
+- レスポンス: サーバーからクライアントへの応答
   - ステータスコード、ヘッダー、ボディで構成される
+```http
+GET /api/v1/tasks/1 HTTP/1.1
+Host: example.com
+Accept: application/json
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":1,"title":"Buy milk","done":false}
+```
 
 == HTTPヘッダー
 - リクエストやレスポンスに関する付加情報（メタデータ）
@@ -31,18 +42,30 @@
 - 例:
   - `Content-Type`: データの形式（`application/json`など）
   - `Authorization`: 認証情報
+```bash
+curl -X POST https://api.example.com/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"secret"}'
+```
 
 == HTTPボディとJSON
-- **ボディ**: 実際に送受信されるデータ本体
-- **JSON (JavaScript Object Notation)**:
+- ボディ: 実際に送受信されるデータ本体
+- JSON (JavaScript Object Notation):
   - Web APIで最も一般的に使われるデータ形式
   - 軽量で人間にも読みやすいテキスト形式
   - キーと値のペアでデータを表現する
+```json
+{
+  "title": "Buy milk",
+  "description": "2L whole milk",
+  "done": false
+}
+```
 
 = REST
 
 == REST API
-- **REpresentational State Transfer** の略
+- REpresentational State Transfer の略
 - Webシステムを設計するためのアーキテクチャスタイル
 - 分散システムにおいて、効率的でスケーラブルな通信を実現するための指針
 
@@ -91,51 +114,82 @@
 - 複数形を使うのが一般的
 - 階層構造で関係性を表す
 - 例: `GET /tasks` (タスク一覧), `GET /tasks/1` (タスク詳細)
+- GET /tasks
+- POST /tasks
+- GET /tasks/1
 
 == パスパラメータ
 - リソースを一意に特定するためにURIの一部として埋め込む値
 - 例: `/tasks/1` の `1`
 - 特定のデータを取得・更新・削除する場合に使用する
+```go
+// Go (routing)
+r := gin.Default()
+v1 := r.Group("/api/v1")
+v1.GET("/tasks/:id", getTaskHandler)
+```
 
 == クエリパラメータ
 - リソースに対する操作の条件を指定するために使う
 - URIの末尾に `?key=value` の形式で付与
 - フィルタリング、ソート、ページネーションなどに使用
 - 例: `/tasks?status=done&limit=10`
+```go
+func listTasksHandler(c *gin.Context) {
+  status := c.Query("status") // "done"
+  limit := c.DefaultQuery("limit", "20")
+  // ...処理...
+}
+```
 
 = HTTPメソッドとCRUD操作
 
 == GET
-- リソースの **取得 (Read)**
+- リソースの 取得 (Read)
 - サーバーのデータを変更しない
 - 例: タスク一覧の取得、タスク詳細の取得
+```bash
+curl -s https://api.example.com/api/v1/tasks/1
+```
 
 == POST
-- リソースの **新規作成 (Create)**
+- リソースの 新規作成 (Create)
 - ボディに作成するデータを含めて送信する
 - 例: 新しいタスクの登録
+```bash
+curl -X POST https://api.example.com/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title":"New task"}'
+```
 
 == PUT / PATCH
-- リソースの **更新 (Update)**
-- **PUT**: リソース全体を置き換える
-- **PATCH**: リソースの一部を変更する
+- リソースの 更新 (Update)
+- PUT: リソース全体を置き換える
+- PATCH: リソースの一部を変更する
 - 例: タスクの内容変更、完了状態の更新
+```bash
+curl -X PATCH https://api.example.com/api/v1/tasks/1 \
+  -H "Content-Type: application/json" \
+  -d '{"done":true}'
+```
 
 == DELETE
-- リソースの **削除 (Delete)**
+- リソースの 削除 (Delete)
 - 指定されたリソースを削除する
 - 例: タスクの削除
 
 == ステータスコード
 - 処理結果を表す3桁の数字
-- **2xx (成功)**: `200 OK`, `201 Created`
-- **4xx (クライアントエラー)**: `400 Bad Request`, `401 Unauthorized`, `404 Not Found`
-- **5xx (サーバーエラー)**: `500 Internal Server Error`
+- 2xx (成功): `200 OK`, `201 Created`
+- 4xx (クライアントエラー): `400 Bad Request`, `401 Unauthorized`, `404 Not Found`
+- 5xx (サーバーエラー): `500 Internal Server Error`
+- POST -> 201 Created + Locationヘッダー
 
 == 冪等性と安全性
-- **安全性 (Safe)**: 操作によってリソースの状態が変わらないこと (GET)
-- **冪等性 (Idempotent)**: 同じ操作を何度繰り返しても結果が変わらないこと (GET, PUT, DELETE)
+- 安全性 (Safe): 操作によってリソースの状態が変わらないこと (GET)
+- 冪等性 (Idempotent): 同じ操作を何度繰り返しても結果が変わらないこと (GET, PUT, DELETE)
 - POSTは冪等ではない（連打すると複数作成される可能性がある）
+- PUT /tasks/1 は何度呼んでも同じ結果
 
 = アーキテクチャと設計
 
@@ -150,29 +204,71 @@
 - Handler (Controller): HTTPリクエストの受付
 - Service (UseCase): ビジネスロジック
 - Repository: データアクセス
+```go
+// Model / DTO
+type Task struct {
+  ID    int64  `json:"id"`
+  Title string `json:"title"`
+  Done  bool   `json:"done"`
+}
+type CreateTaskDTO struct {
+  Title string `json:"title" binding:"required"`
+}
+
+// Repository (インターフェース)
+type TaskRepository interface {
+  Create(ctx context.Context, t *Task) error
+  GetByID(ctx context.Context, id int64) (*Task, error)
+}
+
+// Service
+type TaskService struct {
+  repo TaskRepository
+}
+func (s *TaskService) CreateTask(ctx context.Context, dto CreateTaskDTO) (*Task, error) {
+  t := &Task{Title: dto.Title, Done: false}
+  if err := s.repo.Create(ctx, t); err != nil { return nil, err }
+  return t, nil
+}
+
+// Handler (Gin)
+func createTaskHandler(svc *TaskService) gin.HandlerFunc {
+  return func(c *gin.Context) {
+    var dto CreateTaskDTO
+    if err := c.ShouldBindJSON(&dto); err != nil {
+      c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return
+    }
+    t, err := svc.CreateTask(c.Request.Context(), dto)
+    if err != nil {
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return
+    }
+    c.JSON(http.StatusCreated, t)
+  }
+}
+```
 
 == Handler
-- **役割**: HTTP通信の窓口
+- 役割: HTTP通信の窓口
 - リクエストパラメータの受け取りとバリデーション
 - Service層の呼び出し
 - レスポンス（JSONなど）の返却
 - ビジネスロジックは書かない
 
 == Service
-- **役割**: ビジネスロジックの実装
+- 役割: ビジネスロジックの実装
 - 「アプリケーションが何をするか」を記述
 - データの加工、計算、複数リポジトリの操作など
 - 特定のWebフレームワークに依存させないのが理想
 
 == Repository
-- **役割**: データの永続化
+- 役割: データの永続化
 - データベース(DB)へのアクセスを担当
 - SQLの実行やORMの操作
 - 保存先がDBでもファイルでも、Service層への影響を最小限にする
 
 == データ構造
-- **Model (Entity)**: データベースの構造を表す
-- **DTO (Data Transfer Object)**: APIの入出力専用のデータ構造
+- Model (Entity): データベースの構造を表す
+- DTO (Data Transfer Object): APIの入出力専用のデータ構造
 - 内部のデータ構造とAPIのインターフェースを分離するために使い分ける
 
 == Model
@@ -204,10 +300,25 @@
 2. ミドルウェアの設定（CORSなど）
 3. ルーティングの定義（URLとハンドラの紐付け）
 4. サーバーの起動 (`r.Run()`)
+```go
+func main() {
+  // ... DB接続やrepoの初期化 ...
+  var repo TaskRepository // = NewSQLTaskRepository(db)
+  svc := &TaskService{repo: repo}
+
+  r := gin.Default()
+  v1 := r.Group("/api/v1")
+  v1.POST("/tasks", createTaskHandler(svc))
+  v1.GET("/tasks/:id", func(c *gin.Context){
+    // ... get handler ...
+  })
+  r.Run()
+}
+```
 
 == ルーティングとグループ化
 - HTTPメソッドとURLパスに対して、実行する関数を指定する
-- **グループ化**: 共通のパスプレフィックスやミドルウェアをまとめる機能
+- グループ化: 共通のパスプレフィックスやミドルウェアをまとめる機能
   - 例: `v1 := r.Group("/api/v1")`
   - `/api/v1/tasks`, `/api/v1/users` のように整理できる
 
