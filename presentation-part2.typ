@@ -1,5 +1,4 @@
 #set text(lang: "ja")
-#set text(font: "Noto Sans Javanese")
 
 #set heading(numbering: none)
 
