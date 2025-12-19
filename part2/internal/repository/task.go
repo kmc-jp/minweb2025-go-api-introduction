@@ -33,12 +33,15 @@ func (r *taskRepository) FindByID(id uint) (*model.Task, error) {
 	}
 	return &task, nil
 }
+
 func (r *taskRepository) Update(task *model.Task) error {
 	return r.db.Save(task).Error
 }
+
 func (r *taskRepository) Delete(task *model.Task) error {
 	return r.db.Delete(task).Error
 }
+
 func (r *taskRepository) List() ([]model.Task, error) {
 	var tasks []model.Task
 	if err := r.db.Find(&tasks).Error; err != nil {
