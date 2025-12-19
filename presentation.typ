@@ -11,7 +11,7 @@
   authors: "48th irom",
 )
 
-#outline()
+#outline(depth: 2)
 
 = HTTPの基礎
 
