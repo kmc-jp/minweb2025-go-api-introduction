@@ -27,9 +27,9 @@
 
 == リレーショナルデータベースの基礎
 - テーブル間の関係性
-  - 1対1 (User - Profile)
-  - 1対多 (Task - Schedules)
-  - 多対多 (Student - Class)
+  - 1対1
+  - 1対多
+  - 多対多
 - 外部キー (Foreign Key)
   - 子テーブルが親テーブルを参照するためのID
 - GORMのリレーション定義
