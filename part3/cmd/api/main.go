@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"part3/internal/handler"
 	"part3/internal/middleware"
 	"part3/internal/model"
@@ -8,19 +11,32 @@ import (
 	"part3/internal/service"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
-	// Initialize GORM with SQLite
-	db, err := gorm.Open(sqlite.Open("tasks.db"), &gorm.Config{})
+	// 環境変数からDB接続情報を取得
+	dbHost := getEnv("DB_HOST", "localhost")
+	dbPort := getEnv("DB_PORT", "5432")
+	dbUser := getEnv("DB_USER", "user")
+	dbPassword := getEnv("DB_PASSWORD", "password")
+	dbName := getEnv("DB_NAME", "app_db")
+
+	// PostgreSQL接続文字列の構築
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, dbUser, dbPassword, dbName)
+
+	// Initialize GORM with PostgreSQL
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatal("failed to connect database:", err)
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&model.Task{}, &model.Schedule{}, &model.User{})
+	if err := db.AutoMigrate(&model.Task{}, &model.Schedule{}, &model.User{}); err != nil {
+		log.Fatal("failed to migrate database:", err)
+	}
 
 	// Initialize repositories
 	taskRepo := repository.NewTaskRepository(db)
@@ -43,6 +59,13 @@ func main() {
 	r.POST("/login", authHandler.Login)
 
 	// Task routes
+	r.POST("/tasks", taskHandler.CreateTask)
+	r.GET("/tasks/:id", taskHandler.GetTask)
+	r.PUT("/tasks/:id", taskHandler.UpdateTask)
+	r.DELETE("/tasks/:id", taskHandler.DeleteTask)
+	r.GET("/tasks", taskHandler.ListTasks)
+
+	// Schedule routes (認証必須)
 	authGroup := r.Group("/schedules")
 	authGroup.Use(middleware.AuthMiddleware())
 	{
@@ -53,12 +76,15 @@ func main() {
 		authGroup.DELETE("/:id", scheduleHandler.DeleteSchedule)
 		authGroup.GET("/", scheduleHandler.ListSchedules)
 	}
-	r.POST("/tasks", taskHandler.CreateTask)
-	r.GET("/tasks/:id", taskHandler.GetTask)
-	r.PUT("/tasks/:id", taskHandler.UpdateTask)
-	r.DELETE("/tasks/:id", taskHandler.DeleteTask)
-	r.GET("/tasks", taskHandler.ListTasks)
 
 	// Start the server
+	log.Println("Starting server on :8080")
 	r.Run(":8080")
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
