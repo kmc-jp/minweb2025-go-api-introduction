@@ -1,4 +1,6 @@
 #set text(lang: "ja")
+#set text(font: ("Roboto", "Noto Sans CJK JP"))
+
 
 #set heading(numbering: none)
 
