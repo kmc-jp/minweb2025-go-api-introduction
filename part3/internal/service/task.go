@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 
-	"part2/internal/dto"
-	"part2/internal/repository"
+	"part3/internal/dto"
+	"part3/internal/repository"
 
 	"gorm.io/gorm"
 )

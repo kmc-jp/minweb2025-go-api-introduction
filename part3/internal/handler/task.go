@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"part2/internal/dto"
-	"part2/internal/service"
+	"part3/internal/dto"
+	"part3/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

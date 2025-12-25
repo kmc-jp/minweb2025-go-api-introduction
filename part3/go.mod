@@ -1,4 +1,4 @@
-module part2
+module part3
 
 go 1.24.4
 

@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"part2/internal/model"
+	"part3/internal/model"
 )
 
 type CreateTaskRequest struct {
@@ -31,7 +31,7 @@ func (r *CreateTaskRequest) ToModel() *model.Task {
 	return &model.Task{
 		Title:       r.Title,
 		Description: r.Description,
-		Completed:   false, // デフォルト値
+		Completed:   false,
 	}
 }
 
@@ -45,7 +45,7 @@ func FromModel(t *model.Task) *TaskResponse {
 }
 
 func FromModelList(tasks []model.Task) []ListTasksResponse {
-	response := make([]ListTasksResponse, 0, len(tasks)) // 空スライスで初期化
+	response := make([]ListTasksResponse, 0, len(tasks))
 	for _, t := range tasks {
 		response = append(response, ListTasksResponse{
 			ID:    t.ID,
