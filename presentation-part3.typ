@@ -86,6 +86,11 @@ db.AutoMigrate(&model.Task{}, &model.Schedule{})
 - GoMockやTestifyなどのライブラリを活用
 
 ```bash
+go install github.com/golang/mock/mockgen@latest
+``` 
+== モックの生成
+- internal/repository/task.go のインターフェースをモック化
+```bash
 mockgen -source=internal/repository/task.go \
   -destination=internal/repository/mock_task.go \
   -package=repository
@@ -112,6 +117,20 @@ func TestCreateTask(t *testing.T) {
   mockRepo.Finish()
 }
 ```
+
+== テストの実行
+```bash
+go test -v ./... 
+```
+
+== Handler層の統合テスト例
+```bash
+mockgen -source=internal/service/task.go \
+  -destination=internal/service/mock_task.go \
+  -package=service
+```
+
+- internal/handler/task_test.go
 
 = 3. 認証・認可の実装
 == ステートレス認証とJWT
