@@ -176,6 +176,14 @@ authGroup.Use(middleware.AuthMiddleware())
 }
 ```
 
+== ユーザー登録とログイン
+- internal/handler/auth.go
+```bash
+curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user1","password":"pass123"}'
+```
+
 = 4. DB永続化(Docker Compose)
 == PostgreSQLの導入
 - Docker ComposeでPostgreSQLコンテナを起動
