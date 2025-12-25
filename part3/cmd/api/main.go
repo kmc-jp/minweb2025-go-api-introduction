@@ -9,6 +9,7 @@ import (
 	"part3/internal/model"
 	"part3/internal/repository"
 	"part3/internal/service"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -27,10 +28,21 @@ func main() {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword, dbName)
 
-	// Initialize GORM with PostgreSQL
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// データベース接続（リトライ機能付き）
+	var db *gorm.DB
+	var err error
+	maxRetries := 5
+	for i := 0; i < maxRetries; i++ {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err == nil {
+			log.Println("Successfully connected to database")
+			break
+		}
+		log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxRetries, err)
+		time.Sleep(time.Second * 2)
+	}
 	if err != nil {
-		log.Fatal("failed to connect database:", err)
+		log.Fatal("failed to connect database after retries:", err)
 	}
 
 	// Migrate the schema
